@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Employee Portal Login', () => {
   test('supports keyboard navigation and submission', async ({ page }) => {
-    await page.goto('http://192.168.1.4:8081/');
+    await page.goto('http://localhost:8081/');
 
     // Tab through username and password, then submit with Enter from the Login button.
     await page.keyboard.press('Tab');

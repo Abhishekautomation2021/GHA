@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Employee Portal Login', () => {
   test('updates feedback on repeated login attempts', async ({ page }) => {
-    await page.goto('http://192.168.1.4:8081/');
+    await page.goto('http://localhost:8081/');
     const username = page.locator('#username');
     const password = page.locator('#password');
     const loginButton = page.locator('button');

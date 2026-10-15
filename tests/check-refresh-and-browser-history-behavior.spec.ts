@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Employee Portal Login', () => {
   test('resets login state after refresh without navigating away', async ({ page }) => {
-    await page.goto('http://192.168.1.4:8081/');
+    await page.goto('http://localhost:8081/');
     const initialUrl = page.url();
     const username = page.locator('#username');
     const password = page.locator('#password');
