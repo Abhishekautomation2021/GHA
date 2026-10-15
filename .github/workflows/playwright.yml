@@ -64,8 +64,14 @@ jobs:
         path: all-blob-reports
         pattern: blob-report-*
     
+    - name: Flatten blob reports
+      run: |
+        mkdir -p blob-reports
+        find all-blob-reports -type f -name "*.jsonl" -exec cp {} blob-reports/ \;
+        ls -la blob-reports/
+    
     - name: Merge reports
-      run: npx playwright merge-reports --reporter html ./all-blob-reports
+      run: npx playwright merge-reports --reporter html ./blob-reports
     
     - name: Upload HTML report
       uses: actions/upload-artifact@v4
