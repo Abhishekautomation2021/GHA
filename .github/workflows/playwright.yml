@@ -66,75 +66,67 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
-    - name: Install Playwright Test
-      run: npm install @playwright/test
-    
-    - name: Install Playwright Test
-      run: npm install @playwright/test
-    
     - name: Download all blob reports
       uses: actions/download-artifact@v4
       with:
         path: all-blob-reports
         pattern: blob-report-*
     
-    - name: Debug - Show directory structure
-      run: |
-        echo "=== Directory structure ==="
-        find all-blob-reports -type f | head -20
-        echo ""
-        echo "=== Count files by type ==="
-        find all-blob-reports -type f -name "*.jsonl" | wc -l
-        echo "JSONL files found above"
-    
-    - name: Merge reports (with error handling)
+    - name: Merge reports
       run: |
         mkdir -p blob-reports
-        if find all-blob-reports -name "*.jsonl" -type f | head -1 | grep -q .; then
-          find all-blob-reports -name "*.jsonl" -type f -exec cp {} blob-reports/ \;
-          echo "=== Running merge command ==="
-          npx playwright merge-reports --reporter html ./blob-reports
-        else
-          echo "No .jsonl files found, trying alternative merge..."
-          npx playwright merge-reports --reporter html ./all-blob-reports || true
-        fi
+        
+        echo "=== Listing all downloaded artifacts ==="
+        find all-blob-reports -type f
         
         echo ""
-        echo "=== Checking if report was generated ==="
+        echo "=== Copying .jsonl files ==="
+        find all-blob-reports -type f -name "*.jsonl" | while read file; do
+          echo "Copying: $file"
+          cp "$file" blob-reports/
+        done
+        
+        echo ""
+        echo "=== Files in blob-reports ==="
+        ls -la blob-reports/
+        
+        echo ""
+        echo "=== Running merge with default output ==="
+        npx playwright merge-reports --reporter html blob-reports
+        
+        echo ""
+        echo "=== Checking pwd ==="
+        pwd
+        
+        echo ""
+        echo "=== Checking for playwright-report ==="
         if [ -d "playwright-report" ]; then
-          echo "✓ playwright-report directory exists"
-          ls -la playwright-report/
+          echo "✓ playwright-report found!"
+          find playwright-report -type f | head -10
         else
-          echo "✗ playwright-report directory NOT found!"
-          find . -name "index.html" -o -name "*.html" | head -10
+          echo "✗ playwright-report NOT found, searching for reports..."
+          find . -name "index.html" -type f 2>/dev/null | head -10
         fi
     
-    - name: Upload merged HTML report
+    - name: Verify report exists before upload
+      if: always()
+      run: |
+        echo "=== Final check before upload ==="
+        if [ -f "playwright-report/index.html" ]; then
+          echo "✓ Report ready to upload"
+          du -sh playwright-report/
+        else
+          echo "✗ No index.html found!"
+          ls -R playwright-report/ || echo "Directory doesn't exist"
+        fi
+    
+    - name: Upload HTML report
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: html-report-merged
-        path: playwright-report/
+        path: playwright-report
         retention-days: 30
-    
-    - name: Print Report Location
-      if: ${{ !cancelled() }}
-      run: |
-        echo "=========================================="
-        echo "✓ Test execution completed!"
-        echo "=========================================="
-        echo ""
-        echo "📊 REPORTS AVAILABLE:"
-        echo "1. Merged HTML Report: html-report-merged"
-        echo "   - View in: Actions > Artifacts > html-report-merged"
-        echo ""
-        echo "2. Individual Shard Reports:"
-        echo "   - playwright-report-1"
-        echo "   - playwright-report-2"
-        echo "   - playwright-report-3"
-        echo "   - playwright-report-4"
-        echo ""
-        echo "=========================================="
     
     - name: Print Report Location
       if: ${{ !cancelled() }}
