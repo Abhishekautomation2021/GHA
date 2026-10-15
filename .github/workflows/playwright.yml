@@ -1,140 +1,161 @@
+
 name: Playwright Tests
+
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   playwright-tests:
+    name: Playwright Shard ${{ matrix.shardIndex }}/4
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+
     strategy:
       fail-fast: false
       matrix:
         shardIndex: [1, 2, 3, 4]
         shardTotal: [4]
+
     steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-node@v6
-      with:
-        node-version: lts/*
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Install http-server
-      run: npm install -g http-server
-    
-    - name: Start application server
-      run: http-server app -p 8081 --silent &
-    
-    - name: Wait for server to be ready
-      run: npx wait-on http://localhost:8081 --timeout 15000
-    
-    - name: Install Playwright browsers
-      run: npx playwright install --with-deps
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-    - name: Run Playwright tests
-      run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
 
-    - name: Upload blob report
-      if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: blob-report-${{ matrix.shardIndex }}
-        path: blob-report
-        retention-days: 1
-    
-    - name: Upload HTML report (individual shard)
-      if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: playwright-report-${{ matrix.shardIndex }}
-        path: playwright-report
-        retention-days: 1
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install http-server
+        run: npm install -g http-server
+
+      - name: Start application server
+        run: |
+          http-server app -p 8081 --silent > server.log 2>&1 &
+          echo $! > server.pid
+
+      - name: Wait for server to be ready
+        run: npx wait-on http://localhost:8081 --timeout 30000
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: |
+          npx playwright test \
+            --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+
+      - name: Upload blob report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-${{ matrix.shardIndex }}
+          path: blob-report/
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload individual shard HTML report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.shardIndex }}
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log-${{ matrix.shardIndex }}
+          path: server.log
+          if-no-files-found: ignore
+          retention-days: 7
 
   merge-reports:
+    name: Merge Playwright Reports
     if: ${{ !cancelled() }}
     needs: playwright-tests
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-node@v6
-      with:
-        node-version: lts/*
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Download all blob reports
-      uses: actions/download-artifact@v4
-      with:
-        path: all-blob-reports
-        pattern: blob-report-*
-    
-    - name: Extract and merge blob reports
-      run: |
-        mkdir -p blob-reports
-        
-        echo "=== Extracting and flattening all ZIP contents ==="
-        find all-blob-reports -type f -name "*.zip" | sort | while read zipfile; do
-          echo "Extracting: $zipfile"
-          unzip -q -o "$zipfile" -d blob-reports/
-        done
-        
-        echo ""
-        echo "=== Files in blob-reports (all flattened) ==="
-        ls -la blob-reports/
-        
-        echo ""
-        echo "=== Running merge with single directory ==="
-        npx playwright merge-reports --reporter=html blob-reports
-        
-        echo ""
-        echo "=== Checking for playwright-report ==="
-        if [ -f "playwright-report/index.html" ]; then
-          echo "✓ HTML report created successfully!"
-          ls -lah playwright-report/
-        else
-          echo "✗ Report not found"
-          find . -name "index.html" -type f 2>/dev/null || echo "No HTML files found"
-        fi
-    
-    - name: Verify report exists before upload
-      if: always()
-      run: |
-        echo "=== Final check before upload ==="
-        if [ -f "playwright-report/index.html" ]; then
-          echo "✓ Report ready to upload"
-          du -sh playwright-report/
-        else
-          echo "✗ No index.html found!"
-          ls -R playwright-report/ || echo "Directory doesn't exist"
-        fi
-    
-    - name: Upload HTML report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: html-report-merged
-        path: playwright-report
-        retention-days: 30
-    
-    - name: Print Report Location
-      if: ${{ !cancelled() }}
-      run: |
-        echo "=========================================="
-        echo "✓ Test execution completed!"
-        echo "=========================================="
-        echo ""
-        echo "📊 REPORTS AVAILABLE:"
-        echo "1. Merged HTML Report: html-report-merged"
-        echo "   - View in: Actions > Artifacts > html-report-merged"
-        echo ""
-        echo "2. Individual Shard Reports:"
-        echo "   - playwright-report-1"
-        echo "   - playwright-report-2"
-        echo "   - playwright-report-3"
-        echo "   - playwright-report-4"
-        echo ""
-        echo "=========================================="
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all blob reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+
+      - name: Debug blob report files
+        run: |
+          echo "=== Downloaded files ==="
+          find all-blob-reports -type f
+
+          echo "=== Verify original ZIP files ==="
+          find all-blob-reports -type f -name "*.zip"
+
+      - name: Merge Playwright blob reports
+        run: |
+          npx playwright merge-reports \
+            --reporter=html \
+            ./all-blob-reports
+
+      - name: Verify merged HTML report
+        run: |
+          echo "=== Checking merged report ==="
+
+          if [ -f playwright-report/index.html ]; then
+            echo "Merged HTML report created successfully."
+            du -sh playwright-report/
+          else
+            echo "ERROR: playwright-report/index.html not found."
+            exit 1
+          fi
+
+      - name: Upload merged HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report-merged
+          path: playwright-report/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Print report location
+        if: ${{ !cancelled() }}
+        run: |
+          echo "=========================================="
+          echo "Playwright execution and report merge finished"
+          echo "=========================================="
+          echo ""
+          echo "Download the merged report from:"
+          echo "GitHub Actions > Workflow run > Artifacts"
+          echo "Artifact name: html-report-merged"
+          echo ""
+          echo "Individual shard artifacts:"
+          echo "- playwright-report-1"
+          echo "- playwright-report-2"
+          echo "- playwright-report-3"
+          echo "- playwright-report-4"
