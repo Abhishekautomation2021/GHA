@@ -1,0 +1,7 @@
+- generic [ref=f2e1]:
+  - heading "Employee Portal" [level=1] [ref=f2e2]
+  - textbox "Enter Username" [ref=f2e3]: admin
+  - textbox "Enter Password" [active] [ref=f2e4]: password
+  - button "Login" [ref=f2e5]
+  - heading [level=2]
+  - text: //loginBtn

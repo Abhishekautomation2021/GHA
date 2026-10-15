@@ -1,0 +1,7 @@
+Use Playwright Planner Agent.
+
+Analyze http://192.168.1.4:8081
+
+Create a comprehensive login test plan.
+
+Put the generated md file ouside test folder in a different new folder

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Agent Demo</title>
+</head>
+
+<body>
+
+<h1>Employee Portal</h1>
+
+<input id="username"
+       placeholder="Enter Username">
+
+<input id="password"
+       type="password"
+       placeholder="Enter Password">
+
+<button id="signinBtn">
+ Login
+</button>
+
+<h2 id="message"></h2>
+
+<script>
+
+document
+.getElementById('signinBtn')
+.addEventListener('click', ()=>{
+
+ let user =
+ document.getElementById('username')
+ .value;
+
+ let pass =
+ document.getElementById('password')
+ .value;
+
+ let message =
+ document.getElementById('message');
+
+ if(user==="admin" &&
+    pass==="password")
+ {
+    message.textContent=
+    "Login Successful";
+ }
+ else
+ {
+    message.textContent=
+    "Login Failed";
+ }
+
+});
+
+</script>
+
+</body>
+</html>
