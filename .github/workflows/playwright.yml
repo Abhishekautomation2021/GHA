@@ -66,6 +66,9 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
+    - name: Install Playwright Test
+      run: npm install @playwright/test
+    
     - name: Download all blob reports
       uses: actions/download-artifact@v4
       with:
@@ -86,10 +89,21 @@ jobs:
         mkdir -p blob-reports
         if find all-blob-reports -name "*.jsonl" -type f | head -1 | grep -q .; then
           find all-blob-reports -name "*.jsonl" -type f -exec cp {} blob-reports/ \;
+          echo "=== Running merge command ==="
           npx playwright merge-reports --reporter html ./blob-reports
         else
           echo "No .jsonl files found, trying alternative merge..."
           npx playwright merge-reports --reporter html ./all-blob-reports || true
+        fi
+        
+        echo ""
+        echo "=== Checking if report was generated ==="
+        if [ -d "playwright-report" ]; then
+          echo "✓ playwright-report directory exists"
+          ls -la playwright-report/
+        else
+          echo "✗ playwright-report directory NOT found!"
+          find . -name "index.html" -o -name "*.html" | head -10
         fi
     
     - name: Upload merged HTML report
@@ -99,3 +113,23 @@ jobs:
         name: html-report-merged
         path: playwright-report
         retention-days: 30
+      continue-on-error: true
+    
+    - name: Print Report Location
+      if: ${{ !cancelled() }}
+      run: |
+        echo "=========================================="
+        echo "✓ Test execution completed!"
+        echo "=========================================="
+        echo ""
+        echo "📊 REPORTS AVAILABLE:"
+        echo "1. Merged HTML Report: html-report-merged"
+        echo "   - View in: Actions > Artifacts > html-report-merged"
+        echo ""
+        echo "2. Individual Shard Reports:"
+        echo "   - playwright-report-1"
+        echo "   - playwright-report-2"
+        echo "   - playwright-report-3"
+        echo "   - playwright-report-4"
+        echo ""
+        echo "=========================================="
