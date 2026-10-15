@@ -44,6 +44,14 @@ jobs:
         name: blob-report-${{ matrix.shardIndex }}
         path: blob-report
         retention-days: 1
+    
+    - name: Upload HTML report (individual shard)
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report-${{ matrix.shardIndex }}
+        path: playwright-report
+        retention-days: 1
 
   merge-reports:
     if: ${{ !cancelled() }}
@@ -58,24 +66,36 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
-    - name: Download blob reports
+    - name: Download all blob reports
       uses: actions/download-artifact@v4
       with:
         path: all-blob-reports
         pattern: blob-report-*
     
-    - name: Flatten blob reports
+    - name: Debug - Show directory structure
+      run: |
+        echo "=== Directory structure ==="
+        find all-blob-reports -type f | head -20
+        echo ""
+        echo "=== Count files by type ==="
+        find all-blob-reports -type f -name "*.jsonl" | wc -l
+        echo "JSONL files found above"
+    
+    - name: Merge reports (with error handling)
       run: |
         mkdir -p blob-reports
-        find all-blob-reports -type f -name "*.jsonl" -exec cp {} blob-reports/ \;
-        ls -la blob-reports/
+        if find all-blob-reports -name "*.jsonl" -type f | head -1 | grep -q .; then
+          find all-blob-reports -name "*.jsonl" -type f -exec cp {} blob-reports/ \;
+          npx playwright merge-reports --reporter html ./blob-reports
+        else
+          echo "No .jsonl files found, trying alternative merge..."
+          npx playwright merge-reports --reporter html ./all-blob-reports || true
+        fi
     
-    - name: Merge reports
-      run: npx playwright merge-reports --reporter html ./blob-reports
-    
-    - name: Upload HTML report
+    - name: Upload merged HTML report
+      if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v4
       with:
-        name: html-report
+        name: html-report-merged
         path: playwright-report
         retention-days: 30
