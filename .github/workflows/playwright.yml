@@ -76,14 +76,13 @@ jobs:
       run: |
         mkdir -p blob-reports
         
-        echo "=== Listing all downloaded artifacts ==="
-        find all-blob-reports -type f
-        
-        echo ""
-        echo "=== Extracting ZIP files ==="
-        find all-blob-reports -type f -name "*.zip" | while read zipfile; do
+        echo "=== Extracting and renaming ZIP files ==="
+        counter=1
+        find all-blob-reports -type f -name "*.zip" | sort | while read zipfile; do
           echo "Extracting: $zipfile"
-          unzip -q "$zipfile" -d blob-reports/
+          mkdir -p "blob-reports/report-$counter"
+          unzip -q -o "$zipfile" -d "blob-reports/report-$counter/"
+          counter=$((counter + 1))
         done
         
         echo ""
@@ -98,10 +97,9 @@ jobs:
         echo "=== Checking for playwright-report ==="
         if [ -d "playwright-report" ]; then
           echo "✓ playwright-report found!"
-          find playwright-report -type f | head -10
+          ls -la playwright-report/
         else
           echo "✗ playwright-report NOT found"
-          find . -name "index.html" -type f 2>/dev/null | head -10
         fi
     
     - name: Verify report exists before upload
