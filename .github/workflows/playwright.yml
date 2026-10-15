@@ -76,21 +76,19 @@ jobs:
       run: |
         mkdir -p blob-reports
         
-        echo "=== Extracting all ZIP contents ==="
-        counter=1
+        echo "=== Extracting and flattening all ZIP contents ==="
         find all-blob-reports -type f -name "*.zip" | sort | while read zipfile; do
           echo "Extracting: $zipfile"
-          unzip -q -o "$zipfile" -d "blob-reports/report-$counter/"
-          counter=$((counter + 1))
+          unzip -q -o "$zipfile" -d blob-reports/
         done
         
         echo ""
-        echo "=== Running merge - passing each report directory ==="
-        npx playwright merge-reports --reporter html \
-          blob-reports/report-1 \
-          blob-reports/report-2 \
-          blob-reports/report-3 \
-          blob-reports/report-4
+        echo "=== Files in blob-reports (all flattened) ==="
+        ls -la blob-reports/
+        
+        echo ""
+        echo "=== Running merge with single directory ==="
+        npx playwright merge-reports --reporter=html blob-reports
         
         echo ""
         echo "=== Checking for playwright-report ==="
