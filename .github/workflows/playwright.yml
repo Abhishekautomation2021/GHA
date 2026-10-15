@@ -79,28 +79,27 @@ jobs:
         echo "=== Extracting all ZIP contents ==="
         counter=1
         find all-blob-reports -type f -name "*.zip" | sort | while read zipfile; do
-          echo "Extracting: $zipfile to report-$counter/"
-          mkdir -p "blob-reports/report-$counter"
+          echo "Extracting: $zipfile"
           unzip -q -o "$zipfile" -d "blob-reports/report-$counter/"
           counter=$((counter + 1))
         done
         
         echo ""
-        echo "=== Contents of blob-reports ==="
-        find blob-reports -type f | head -20
-        
-        echo ""
-        echo "=== Running merge with default output ==="
-        npx playwright merge-reports --reporter html blob-reports
+        echo "=== Running merge - passing each report directory ==="
+        npx playwright merge-reports --reporter html \
+          blob-reports/report-1 \
+          blob-reports/report-2 \
+          blob-reports/report-3 \
+          blob-reports/report-4
         
         echo ""
         echo "=== Checking for playwright-report ==="
-        if [ -d "playwright-report" ]; then
-          echo "✓ playwright-report found!"
-          ls -la playwright-report/ | head -20
+        if [ -f "playwright-report/index.html" ]; then
+          echo "✓ HTML report created successfully!"
+          ls -lah playwright-report/
         else
-          echo "✗ playwright-report NOT found"
-          find . -name "index.html" -type f 2>/dev/null
+          echo "✗ Report not found"
+          find . -name "index.html" -type f 2>/dev/null || echo "No HTML files found"
         fi
     
     - name: Verify report exists before upload
