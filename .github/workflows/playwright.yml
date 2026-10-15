@@ -72,7 +72,7 @@ jobs:
         path: all-blob-reports
         pattern: blob-report-*
     
-    - name: Merge reports
+    - name: Extract and merge blob reports
       run: |
         mkdir -p blob-reports
         
@@ -80,23 +80,19 @@ jobs:
         find all-blob-reports -type f
         
         echo ""
-        echo "=== Copying .jsonl files ==="
-        find all-blob-reports -type f -name "*.jsonl" | while read file; do
-          echo "Copying: $file"
-          cp "$file" blob-reports/
+        echo "=== Extracting ZIP files ==="
+        find all-blob-reports -type f -name "*.zip" | while read zipfile; do
+          echo "Extracting: $zipfile"
+          unzip -q "$zipfile" -d blob-reports/
         done
         
         echo ""
-        echo "=== Files in blob-reports ==="
-        ls -la blob-reports/
+        echo "=== Files in blob-reports after extraction ==="
+        find blob-reports -type f
         
         echo ""
         echo "=== Running merge with default output ==="
         npx playwright merge-reports --reporter html blob-reports
-        
-        echo ""
-        echo "=== Checking pwd ==="
-        pwd
         
         echo ""
         echo "=== Checking for playwright-report ==="
@@ -104,7 +100,7 @@ jobs:
           echo "✓ playwright-report found!"
           find playwright-report -type f | head -10
         else
-          echo "✗ playwright-report NOT found, searching for reports..."
+          echo "✗ playwright-report NOT found"
           find . -name "index.html" -type f 2>/dev/null | head -10
         fi
     
