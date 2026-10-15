@@ -76,18 +76,20 @@ jobs:
       run: |
         mkdir -p blob-reports
         
-        echo "=== Extracting and renaming ZIP files ==="
+        echo "=== Extracting ZIP files and flattening ==="
         counter=1
         find all-blob-reports -type f -name "*.zip" | sort | while read zipfile; do
           echo "Extracting: $zipfile"
-          mkdir -p "blob-reports/report-$counter"
-          unzip -q -o "$zipfile" -d "blob-reports/report-$counter/"
+          unzip -q -o "$zipfile" -d temp-extract/
+          # Rename each report.jsonl to report-{n}.jsonl to avoid conflicts
+          mv temp-extract/report.jsonl "blob-reports/report-$counter.jsonl"
           counter=$((counter + 1))
         done
+        rm -rf temp-extract
         
         echo ""
-        echo "=== Files in blob-reports after extraction ==="
-        find blob-reports -type f
+        echo "=== Files in blob-reports (flattened) ==="
+        ls -la blob-reports/
         
         echo ""
         echo "=== Running merge with default output ==="
