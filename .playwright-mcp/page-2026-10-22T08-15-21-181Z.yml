@@ -1,0 +1,6 @@
+- generic [ref=e1]:
+  - heading "Employee Portal" [level=1] [ref=e2]
+  - textbox "Enter Username" [ref=e3]: keyboard-test-user
+  - textbox "Enter Password" [active] [ref=e4]: keyboard-test-pass
+  - button "Login" [ref=e5]
+  - heading [level=2]

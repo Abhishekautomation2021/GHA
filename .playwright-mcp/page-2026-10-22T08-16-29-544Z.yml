@@ -1,0 +1,6 @@
+- generic [ref=f1e1]:
+  - heading "Employee Portal" [level=1] [ref=f1e2]
+  - textbox "Enter Username" [ref=f1e3]
+  - textbox "Enter Password" [ref=f1e4]: incomplete-test-pass
+  - button "Login" [active] [ref=f1e5]
+  - heading "Login Failed" [level=2] [ref=f1e6]
