@@ -19,7 +19,7 @@ test.describe('Authentication and error handling', () => {
     await page.getByRole('button', { name: 'Login' }).click();
 
     await expect(page.getByRole('heading', { name: 'Login Failed' })).toBeVisible();
-    await expect(page).toHaveURL('http://192.168.1.5:8080/');
+    await expect(page).toHaveURL('http://localhost:8081/');
     await expect(page.getByText('qa-long-pass')).toHaveCount(0);
   });
 });

@@ -29,7 +29,7 @@ test.describe('Login form rendering and interaction', () => {
     await page.keyboard.press('Backspace');
     await expect(username).toBeEmpty();
     await expect(password).toBeEmpty();
-    await expect(page).toHaveURL('http://192.168.1.5:8080/');
+    await expect(page).toHaveURL('http://localhost:8081/');
     await expect(page.getByText(/login successful/i)).toHaveCount(0);
 
     // 3. Use Tab and Shift+Tab to move between fields and Login button.
