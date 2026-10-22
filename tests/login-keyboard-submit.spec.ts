@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Login form rendering and interaction', () => {
   test('Submit login form using the keyboard', async ({ page }) => {
     // 1. On a fresh page, focus the username field, enter designated test values, and submit using Enter from the password field.
-    await page.goto('http://192.168.1.5:8080/');
+    await page.goto('http://localhost:8080/');
     const username = page.getByRole('textbox', { name: 'Enter Username' });
     const password = page.getByRole('textbox', { name: 'Enter Password' });
 

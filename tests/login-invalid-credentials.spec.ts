@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Authentication and error handling', () => {
   test('Reject an incorrect password', async ({ page }) => {
     // 1. Enter a known test account username with an intentionally incorrect password and activate Login.
-    await page.goto('http://192.168.1.5:8080/');
+    await page.goto('http://localhost:8080/');
     const username = page.getByRole('textbox', { name: 'Enter Username' });
     const password = page.getByRole('textbox', { name: 'Enter Password' });
 

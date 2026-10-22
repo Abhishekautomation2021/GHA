@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Login form rendering and interaction', () => {
   test('Render the employee portal login form', async ({ page }) => {
     // 1. Open the employee portal in a fresh browser context and verify it loads
-    await page.goto('http://192.168.1.5:8080/');
+    await page.goto('http://localhost:8080/');
     await expect(page).toHaveTitle('Agent Demo');
 
     // 2. Inspect the page heading and controls. Verify the heading, fields, button, masking, empty state, and absence of an authentication result message.
