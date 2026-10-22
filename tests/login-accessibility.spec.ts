@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Security, accessibility, and resilience', () => {
   test('Verify keyboard and assistive-technology access', async ({ page }) => {
     // 1. Navigate the login page using only the keyboard, checking focus order and activating Login with the keyboard.
-    await page.goto('http://localhost:8080/');
+    await page.goto('http://localhost:8081/');
     const username = page.getByRole('textbox', { name: 'Enter Username' });
     const password = page.getByRole('textbox', { name: 'Enter Password' });
     const loginButton = page.getByRole('button', { name: 'Login' });

@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Security, accessibility, and resilience', () => {
   test('Handle refresh and browser navigation safely', async ({ page }) => {
     // 1. Submit invalid credentials, refresh the page, then verify a clean unauthenticated login state.
-    await page.goto('http://localhost:8080/');
+    await page.goto('http://localhost:8081/');
     await page.getByRole('textbox', { name: 'Enter Username' }).fill('refresh-test-user');
     await page.getByRole('textbox', { name: 'Enter Password' }).fill('refresh-test-pass');
     await page.getByRole('button', { name: 'Login' }).click();

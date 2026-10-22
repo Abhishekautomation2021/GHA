@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Login form rendering and interaction', () => {
   test('Enter, edit, and clear username and password values', async ({ page }) => {
     // 1. Enter a designated non-sensitive test username and password in their respective fields.
-    await page.goto('http://localhost:8080/');
+    await page.goto('http://localhost:8081/');
     const username = page.getByRole('textbox', { name: 'Enter Username' });
     const password = page.getByRole('textbox', { name: 'Enter Password' });
     const loginButton = page.getByRole('button', { name: 'Login' });

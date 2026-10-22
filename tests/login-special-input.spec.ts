@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Authentication and error handling', () => {
   test('Handle special characters and long input safely', async ({ page }) => {
     // 1. Enter punctuation, Unicode characters, and representative long strings in username and password fields, then submit.
-    await page.goto('http://localhost:8080/');
+    await page.goto('http://localhost:8081/');
     const username = page.getByRole('textbox', { name: 'Enter Username' });
     const password = page.getByRole('textbox', { name: 'Enter Password' });
 
